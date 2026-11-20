@@ -11,6 +11,7 @@ const Scene = lazy(() => import("./three/Scene"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const SharedTrip = lazy(() => import("./pages/SharedTrip"));
 
+
 export default function App() {
   const location = useLocation();
   return (
