@@ -1,4 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import api, { getCsrfToken, onUnauthorized, setCsrfToken } from "../api/axios";
 
 const AuthContext = createContext(null);
@@ -32,18 +39,29 @@ export function AuthProvider({ children }) {
     };
   }, [begin, clear]);
 
-  const value = useMemo(() => ({
-    user,
-    loading,
-    login: async (email, password) => begin((await api.post("/auth/login", { email, password })).data),
-    signup: async (name, email, password) => begin((await api.post("/auth/signup", { name, email, password })).data),
-    // Sign out locally right away; the server call revokes the session everywhere.
-    logout: () => {
-      const token = getCsrfToken();
-      clear();
-      return api.post("/auth/logout", null, { headers: { "X-CSRF-Token": token } }).catch(() => {});
-    },
-  }), [user, loading, begin, clear]);
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      login: async (email, password) =>
+        begin((await api.post("/auth/login", { email, password })).data),
+      signup: async (name, email, password) =>
+        begin((await api.post("/auth/signup", { name, email, password })).data),
+      // Sign out locally right away; the server call revokes the session everywhere.
+     logout: async () => {
+  const token = getCsrfToken();
+  try {
+    await api.post("/auth/logout", null, {
+      headers: { "X-CSRF-Token": token },
+    });
+  } catch {
+    /* cookie reh sakti hai; reload ke baad asli state dikhegi */
+  }
+  window.location.replace("/");
+},
+    }),
+    [user, loading, begin, clear],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
